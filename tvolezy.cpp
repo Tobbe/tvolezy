@@ -3,16 +3,17 @@
 
 #include <windows.h>
 #include "tvolezy.h"
+#include "volume.h"
 
 HWND hWnd;
 HWND hWndParent;
 LPCSTR className = "tVolEzyWndClass";
 LPCSTR revID = "tVolEzy 0.1 by Tobbe";
 BOOL showErrors;
+Volume vol;
 
 void bangVol(HWND caller, const char *bangName, const char *args);
 void bangToggleMute(HWND caller, const char *bangName, const char *args);
-void changeVolume(HWND caller, int steps);
 void reportError(LPCSTR msg);
 LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -64,183 +65,25 @@ extern "C" int initModuleEx(HWND parentWnd, HINSTANCE dllInst, LPCSTR szPath)
 
 void bangVol(HWND caller, const char* bangName, const char* args)
 {
-	int direction = 1;
+	int steps = 0;
+	if (args && args[0] != '\0')
+	{
+		steps = atoi(args);
+	}
 
 	if (bangName[8] == 'D' || bangName[8] == 'd')
 	{
-		direction = -1;
-	}
-
-	if (args && args[0] != '\0')
-	{
-		changeVolume(caller, atol(args) * direction);
+		vol.down(steps);
 	}
 	else
 	{
-		changeVolume(caller, direction);
+		vol.up(steps);
 	}
-}
-
-void changeVolume(HWND caller, int steps)
-{
-	//
-	// Open the mixer, set hMixer
-	//
-
-	HMIXER hMixer;
-	if (mixerOpen(&hMixer, 0, 0, 0, MIXER_OBJECTF_HMIXER) != MMSYSERR_NOERROR)
-	{
-		reportError("Couldn't open mixer");
-		return;
-	}
-
-	//
-	// get dwLineID
-	//
-
-	MIXERLINE ml = {0};
-	ml.cbStruct = sizeof(MIXERLINE);
-	ml.dwComponentType = MIXERLINE_COMPONENTTYPE_DST_SPEAKERS;
-	if (mixerGetLineInfo((HMIXEROBJ)hMixer, &ml, MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
-	{
-		reportError("Couldn't get line info");
-		return;
-	}
-
-	//
-	// get dwControlID
-	//
-
-	MIXERLINECONTROLS mlc = {0};
-	MIXERCONTROL mc = {0};
-
-	mlc.dwControlType = MIXERCONTROL_CONTROLTYPE_VOLUME;
-	mlc.cbStruct = sizeof(MIXERLINECONTROLS);
-	mlc.dwLineID = ml.dwLineID;
-	mlc.cControls = 1;
-	mlc.cbmxctrl = sizeof(MIXERCONTROL);
-	mlc.pamxctrl = &mc;
-
-	if (mixerGetLineControls((HMIXEROBJ)hMixer, &mlc, MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) != MMSYSERR_NOERROR)
-	{
-		reportError("Couldn't get line controls");
-		return;
-	}
-
-	MIXERCONTROLDETAILS mcd = {0};
-	MIXERCONTROLDETAILS_BOOLEAN mcdb = {0};
-	MIXERCONTROLDETAILS_UNSIGNED mcdu = {0};
-
-	mcd.paDetails = &mcdu;
-	mcd.cbDetails = sizeof(MIXERCONTROLDETAILS_UNSIGNED);
-	mcd.cbStruct = sizeof(MIXERCONTROLDETAILS);
-	mcd.dwControlID = mc.dwControlID;
-	mcd.cChannels = 1;
-	mcd.cMultipleItems = 0;
-
-	if (mixerGetControlDetails((HMIXEROBJ) hMixer, &mcd, MIXER_SETCONTROLDETAILSF_VALUE) != MMSYSERR_NOERROR)
-	{
-		reportError("Couldn't get control details");
-		return;
-	}
-
-	mcdb.fValue = !mcdb.fValue;
-
-	//full volume at 65535, max dwords can handle is 4294967295
-	if ((long)mcdu.dwValue + steps < 0)
-	{
-		mcdu.dwValue = 0;
-	}
-	else if (mcdu.dwValue + steps > 65535)
-	{
-		mcdu.dwValue = 65535;
-	}
-	else
-	{
-		mcdu.dwValue += steps;
-	}
-
-	if (mixerSetControlDetails((HMIXEROBJ)hMixer, &mcd, MIXER_SETCONTROLDETAILSF_VALUE) != MMSYSERR_NOERROR)
-	{
-		reportError("Couldn't set volume");
-		return;
-	}
-
-	mixerClose(hMixer);
 }
 
 void bangToggleMute(HWND caller, const char* bangName, const char* args)
 {
-	//
-	// Open the mixer, set hMixer
-	//
-
-	HMIXER hMixer;
-	if (mixerOpen(&hMixer, 0, 0, 0, MIXER_OBJECTF_HMIXER) != MMSYSERR_NOERROR)
-	{
-		reportError("Couldn't open mixer");
-		return;
-	}
-
-	//
-	// get dwLineID
-	//
-
-	MIXERLINE ml = {0};
-	ml.cbStruct = sizeof(MIXERLINE);
-	ml.dwComponentType = MIXERLINE_COMPONENTTYPE_DST_SPEAKERS;
-	if (mixerGetLineInfo((HMIXEROBJ)hMixer, &ml, MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
-	{
-		reportError("Couldn't get line info");
-		return;
-	}
-
-	//
-	// get dwControlID
-	//
-
-	MIXERLINECONTROLS mlc = {0};
-	MIXERCONTROL mc = {0};
-
-	mlc.dwControlType = MIXERCONTROL_CONTROLTYPE_MUTE;
-	mlc.cbStruct = sizeof(MIXERLINECONTROLS);
-	mlc.dwLineID = ml.dwLineID;
-	mlc.cControls = 1;
-	mlc.cbmxctrl = sizeof(MIXERCONTROL);
-	mlc.pamxctrl = &mc;
-
-	if (mixerGetLineControls((HMIXEROBJ)hMixer, &mlc, MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) != MMSYSERR_NOERROR)
-	{
-		reportError("Couldn't get line controls");
-		return;
-	}
-
-	MIXERCONTROLDETAILS mcd = {0};
-	MIXERCONTROLDETAILS_BOOLEAN mcdb = {0};
-	MIXERCONTROLDETAILS_UNSIGNED mcdu = {0};
-
-	mcd.paDetails = &mcdb;
-	mcd.cbDetails = sizeof(MIXERCONTROLDETAILS_BOOLEAN);
-	mcd.cbStruct = sizeof(MIXERCONTROLDETAILS);
-	mcd.dwControlID = mc.dwControlID;
-	mcd.cChannels = 1;
-	mcd.cMultipleItems = 0;
-
-	if (mixerGetControlDetails((HMIXEROBJ) hMixer, &mcd, MIXER_SETCONTROLDETAILSF_VALUE) != MMSYSERR_NOERROR)
-	{
-		reportError("Couldn't get control details");
-		return;
-	}
-
-	mcdb.fValue = !mcdb.fValue;
-
-	if (mixerSetControlDetails((HMIXEROBJ)hMixer, &mcd, MIXER_SETCONTROLDETAILSF_VALUE) != MMSYSERR_NOERROR)
-	{
-		reportError("Couldn't set volume");
-		return;
-	}
-
-	mixerClose(hMixer);
+	vol.toggleMute();
 }
 
 void reportError(LPCSTR msg)

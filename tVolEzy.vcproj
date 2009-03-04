@@ -201,6 +201,10 @@
 				RelativePath=".\tvolezy.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\volume.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -209,6 +213,10 @@
 			>
 			<File
 				RelativePath=".\tvolezy.h"
+				>
+			</File>
+			<File
+				RelativePath=".\volume.h"
 				>
 			</File>
 		</Filter>
@@ -226,4 +234,3 @@
 	<Globals>
 	</Globals>
 </VisualStudioProject>
-
