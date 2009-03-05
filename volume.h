@@ -6,25 +6,24 @@
 class Volume
 {
 private:
-	HMIXER mixerVol;
-	HMIXER mixerMute;
-	MIXERLINE mlVol;
-	MIXERLINE mlMute;
-	MIXERCONTROL mcVol;
-	MIXERCONTROL mcMute;
+	MIXERLINE ml;
+	MIXERCONTROL mc;
 	MIXERLINECONTROLS mlcVol;
 	MIXERLINECONTROLS mlcMute;
 	MIXERCONTROLDETAILS mcdVol;
 	MIXERCONTROLDETAILS mcdMute;
 	MIXERCONTROLDETAILS_UNSIGNED mcdu;
 	MIXERCONTROLDETAILS_BOOLEAN mcdb;
-	void setupMixers();
+
+	void setupMixerStructs();
+	void setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIXERCONTROLDETAILS &mcd);
 	void change(int steps);
 	void reportError(LPCSTR msg);
+	bool isMuted();
+	void setMuted(bool mute);
 
 public:
 	Volume();
-	~Volume();
 	void up(int steps);
 	void down(int steps);
 	void toggleMute();
