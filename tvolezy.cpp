@@ -143,18 +143,6 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			lstrcpy((LPSTR)lParam, revID);
 			return strlen((LPTSTR)lParam);
 
-		case WM_CLOSE:
-			return 0;
-
-		case WM_SYSCOMMAND:
-			switch (wParam){
-				case SC_CLOSE:
-					return 0;
-				default:
-					break;
-			}
-			break;
-
 		case WM_DESTROY:
 			hWnd = NULL;
 			return 0;
