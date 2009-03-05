@@ -26,6 +26,14 @@ tVolEzyShowErrors true
     Setting this to 'false' will disable all error message boxes.
     Default is 'true'.
 
+tVolEzyUnmuteOnVolUp true
+    Makes tVolEzy unmute the sound when you call !tVolEzyUp
+    Default is 'true'
+
+tVolEzyUnmuteOnVolDown false
+    Makes tVolEzy unmute the sound when you call !tVolEzyDown
+    Default is 'false'
+
 
 !bang commands
 --------------
