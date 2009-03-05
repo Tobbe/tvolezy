@@ -12,8 +12,9 @@ LPCSTR revID = "tVolEzy 0.1 by Tobbe";
 TveSettings settings;
 Volume vol(settings);
 
-void bangVol(HWND caller, const char *bangName, const char *args);
-void bangToggleMute(HWND caller, const char *bangName, const char *args);
+void __cdecl bangVolUp(HWND caller, const char *args);
+void __cdecl bangVolDown(HWND caller, const char *args);
+void __cdecl bangToggleMute(HWND caller, const char *args);
 void reportVolumeError();
 void reportError(LPCSTR msg);
 LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -24,7 +25,7 @@ BOOL WINAPI DllMain(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 }
 
 // Actual main function
-extern "C" int initModuleEx(HWND parentWnd, HINSTANCE dllInst, LPCSTR szPath)
+extern "C" int __cdecl initModuleEx(HWND parentWnd, HINSTANCE dllInst, LPCSTR szPath)
 {
 	szPath=szPath;
 	hWndParent = parentWnd;
@@ -39,6 +40,7 @@ extern "C" int initModuleEx(HWND parentWnd, HINSTANCE dllInst, LPCSTR szPath)
 	wc.lpfnWndProc = (WNDPROC)wndProc;
 	wc.hInstance = dllInst;
 	wc.lpszClassName = className;
+	wc.style = CS_NOCLOSE;
 	if (!RegisterClass(&wc))
 	{
 		reportError("Error registering tVolEzy window class");
@@ -50,23 +52,23 @@ extern "C" int initModuleEx(HWND parentWnd, HINSTANCE dllInst, LPCSTR szPath)
 	if (hWnd == NULL)
 	{
 		reportError("Error creating tVolEzy window");
-		UnregisterClass("", dllInst);
+		UnregisterClass(className, dllInst);
 		return 1;
 	}
 
 	// Register our bangs with LiteStep
-	AddBangCommandEx("!tVolEzyUp", bangVol);
-	AddBangCommandEx("!tVolEzyDown", bangVol);
-	AddBangCommandEx("!tVolEzyToggleMute", bangToggleMute);
+	AddBangCommand("!tVolEzyUp", bangVolUp);
+	AddBangCommand("!tVolEzyDown", bangVolDown);
+	AddBangCommand("!tVolEzyToggleMute", bangToggleMute);
 
 	// Register message for version info
 	UINT msgs[] = {LM_GETREVID, 0};
-	SendMessage(hWndParent, LM_REGISTERMESSAGE, (WPARAM)hWnd, (LPARAM)msgs);
+	SendMessage(GetLitestepWnd(), LM_REGISTERMESSAGE, (WPARAM)hWnd, (LPARAM)msgs);
 
 	return 0;
 }
 
-void bangVol(HWND caller, const char* bangName, const char* args)
+void __cdecl bangVolUp(HWND caller, const char* args)
 {
 	int steps = 0;
 	if (args && args[0] != '\0')
@@ -74,23 +76,27 @@ void bangVol(HWND caller, const char* bangName, const char* args)
 		steps = atoi(args);
 	}
 
-	if (bangName[8] == 'D' || bangName[8] == 'd')
+	if (!vol.up(steps))
 	{
-		if (!vol.down(steps))
-		{
-			reportVolumeError();
-		}
-	}
-	else
-	{
-		if (!vol.up(steps))
-		{
-			reportVolumeError();
-		}
+		reportVolumeError();
 	}
 }
 
-void bangToggleMute(HWND caller, const char* bangName, const char* args)
+void __cdecl bangVolDown(HWND caller, const char* args)
+{
+	int steps = 0;
+	if (args && args[0] != '\0')
+	{
+		steps = atoi(args);
+	}
+
+	if (!vol.down(steps))
+	{
+		reportVolumeError();
+	}
+}
+
+void __cdecl bangToggleMute(HWND caller, const char* args)
 {
 	if(!vol.toggleMute())
 	{
@@ -161,9 +167,19 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 // -------------------------------------------------------
 // cleanup (opposite of init())
-extern "C" void quitModule(HINSTANCE dllInst)
+extern "C" void __cdecl quitModule(HINSTANCE dllInst)
 {
 	RemoveBangCommand("!tVolEzyUp");
 	RemoveBangCommand("!tVolEzyDown");
 	RemoveBangCommand("!tVolEzyToggleMute");
+
+	if (hWnd != NULL)
+	{
+		UINT msgs[] = {LM_GETREVID, 0};
+		SendMessage(GetLitestepWnd(), LM_UNREGISTERMESSAGE, (WPARAM)hWnd, (LPARAM)msgs);
+
+		DestroyWindow(hWnd);
+	}
+
+	UnregisterClass(className, dllInst);
 }

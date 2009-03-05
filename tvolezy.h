@@ -5,8 +5,8 @@
 
 extern "C"
 {
-__declspec(dllexport) int initModuleEx(HWND parent, HINSTANCE dll, LPCSTR szPath);
-__declspec(dllexport) void quitModule(HINSTANCE dllInst);
+__declspec(dllexport) int __cdecl initModuleEx(HWND parent, HINSTANCE dll, LPCSTR szPath);
+__declspec(dllexport) void __cdecl quitModule(HINSTANCE dllInst);
 }
 
 #endif
