@@ -15,6 +15,7 @@ Volume vol(settings);
 void __cdecl bangVolUp(HWND caller, const char *args);
 void __cdecl bangVolDown(HWND caller, const char *args);
 void __cdecl bangToggleMute(HWND caller, const char *args);
+void readSettings();
 void reportVolumeError();
 void reportError(LPCSTR msg);
 LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -24,16 +25,12 @@ BOOL WINAPI DllMain(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 	return TRUE;
 }
 
-// Actual main function
 extern "C" int __cdecl initModuleEx(HWND parentWnd, HINSTANCE dllInst, LPCSTR szPath)
 {
 	szPath=szPath;
 	hWndParent = parentWnd;
 
-	// Get tVolEzy settings
-	settings.showErrors = GetRCBoolDef("tVolEzyShowErrors", TRUE) == TRUE;
-	settings.unmuteOnVolUp = GetRCBoolDef("tVolEzyUnmuteOnVolUp", TRUE) == TRUE;
-	settings.unmuteOnVolDown = GetRCBoolDef("tVolEzyUnmuteOnVolDown", FALSE) == TRUE;
+	readSettings();
 
 	WNDCLASS wc;
 	memset(&wc, 0, sizeof(wc));
@@ -62,7 +59,7 @@ extern "C" int __cdecl initModuleEx(HWND parentWnd, HINSTANCE dllInst, LPCSTR sz
 	AddBangCommand("!tVolEzyToggleMute", bangToggleMute);
 
 	// Register message for version info
-	UINT msgs[] = {LM_GETREVID, 0};
+	UINT msgs[] = {LM_GETREVID, LM_REFRESH, 0};
 	SendMessage(GetLitestepWnd(), LM_REGISTERMESSAGE, (WPARAM)hWnd, (LPARAM)msgs);
 
 	return 0;
@@ -104,6 +101,13 @@ void __cdecl bangToggleMute(HWND caller, const char* args)
 	}
 }
 
+void readSettings()
+{
+	settings.showErrors = GetRCBoolDef("tVolEzyShowErrors", TRUE) != FALSE;
+	settings.unmuteOnVolUp = GetRCBoolDef("tVolEzyUnmuteOnVolUp", TRUE) != FALSE;
+	settings.unmuteOnVolDown = GetRCBoolDef("tVolEzyUnmuteOnVolDown", FALSE) != FALSE;
+}
+
 void reportVolumeError()
 {
 	switch (vol.getError())
@@ -143,6 +147,10 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			lstrcpy((LPSTR)lParam, revID);
 			return strlen((LPTSTR)lParam);
 
+		case LM_REFRESH:
+			readSettings();
+			return 0;
+
 		case WM_DESTROY:
 			hWnd = NULL;
 			return 0;
@@ -154,8 +162,6 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
-// -------------------------------------------------------
-// cleanup (opposite of init())
 extern "C" void __cdecl quitModule(HINSTANCE dllInst)
 {
 	RemoveBangCommand("!tVolEzyUp");
@@ -164,7 +170,7 @@ extern "C" void __cdecl quitModule(HINSTANCE dllInst)
 
 	if (hWnd != NULL)
 	{
-		UINT msgs[] = {LM_GETREVID, 0};
+		UINT msgs[] = {LM_GETREVID, LM_REFRESH, 0};
 		SendMessage(GetLitestepWnd(), LM_UNREGISTERMESSAGE, (WPARAM)hWnd, (LPARAM)msgs);
 
 		DestroyWindow(hWnd);
