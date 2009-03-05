@@ -1,6 +1,7 @@
 #ifndef VOLUME_H_
 #define VOLUME_H_
 
+#include "tvesettings.h"
 #include <windows.h>
 
 class Volume
@@ -14,6 +15,7 @@ private:
 	MIXERCONTROLDETAILS mcdMute;
 	MIXERCONTROLDETAILS_UNSIGNED mcdu;
 	MIXERCONTROLDETAILS_BOOLEAN mcdb;
+	const TveSettings &settings;
 
 	void setupMixerStructs();
 	void setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIXERCONTROLDETAILS &mcd);
@@ -23,7 +25,7 @@ private:
 	void setMuted(bool mute);
 
 public:
-	Volume();
+	Volume(const TveSettings &settings);
 	void up(int steps);
 	void down(int steps);
 	void toggleMute();

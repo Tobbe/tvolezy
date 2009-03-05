@@ -9,8 +9,8 @@ HWND hWnd;
 HWND hWndParent;
 LPCSTR className = "tVolEzyWndClass";
 LPCSTR revID = "tVolEzy 0.1 by Tobbe";
-BOOL showErrors;
-Volume vol;
+TveSettings settings;
+Volume vol(settings);
 
 void bangVol(HWND caller, const char *bangName, const char *args);
 void bangToggleMute(HWND caller, const char *bangName, const char *args);
@@ -29,7 +29,9 @@ extern "C" int initModuleEx(HWND parentWnd, HINSTANCE dllInst, LPCSTR szPath)
 	hWndParent = parentWnd;
 
 	// Get tVolEzy settings
-	showErrors = GetRCBool("tVolEzyShowErrors", TRUE);
+	settings.showErrors = GetRCBoolDef("tVolEzyShowErrors", TRUE) == TRUE;
+	settings.unmuteOnVolUp = GetRCBoolDef("tVolEzyUnmuteOnVolUp", TRUE) == TRUE;
+	settings.unmuteOnVolDown = GetRCBoolDef("tVolEzyUnmuteOnVolDown", FALSE) == TRUE;
 
 	WNDCLASS wc;
 	memset(&wc, 0, sizeof(wc));
@@ -88,7 +90,7 @@ void bangToggleMute(HWND caller, const char* bangName, const char* args)
 
 void reportError(LPCSTR msg)
 {
-	if (showErrors)
+	if (settings.showErrors)
 	{
 		MessageBox(NULL, msg, "tVolEzy error", MB_OK | MB_ICONERROR);
 	}

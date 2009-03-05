@@ -1,7 +1,8 @@
 #include "volume.h"
+#include "tvesettings.h"
 #include <windows.h>
 
-Volume::Volume()
+Volume::Volume(const TveSettings &settings) : settings(settings)
 {
 	setupMixerStructs();
 }
@@ -95,7 +96,7 @@ void Volume::change(int steps)
 
 void Volume::reportError(LPCSTR msg)
 {
-	//if (showErrors)
+	if (settings.showErrors)
 	{
 		MessageBox(NULL, msg, "tVolEzy error", MB_OK | MB_ICONERROR);
 	}
@@ -106,7 +107,7 @@ bool Volume::isMuted()
 	HMIXER mixer;
 	setupMixerControlDetails(mixer, mlcMute, mcdMute);
 
-	return mcdb.fValue;
+	return mcdb.fValue != 0;
 }
 
 void Volume::setMuted(bool mute)
@@ -128,12 +129,21 @@ void Volume::setMuted(bool mute)
 void Volume::up(int steps)
 {
 	change(steps);
-	setMuted(false);
+
+	if (settings.unmuteOnVolUp)
+	{
+		setMuted(false);
+	}
 }
 
 void Volume::down(int steps)
 {
 	change(-steps);
+
+	if (settings.unmuteOnVolDown)
+	{
+		setMuted(false);
+	}
 }
 
 void Volume::toggleMute()
