@@ -168,11 +168,11 @@ extern "C" void __cdecl quitModule(HINSTANCE dllInst)
 	RemoveBangCommand("!tVolEzyDown");
 	RemoveBangCommand("!tVolEzyToggleMute");
 
+	UINT msgs[] = {LM_GETREVID, LM_REFRESH, 0};
+	SendMessage(GetLitestepWnd(), LM_UNREGISTERMESSAGE, (WPARAM)hWnd, (LPARAM)msgs);
+
 	if (hWnd != NULL)
 	{
-		UINT msgs[] = {LM_GETREVID, LM_REFRESH, 0};
-		SendMessage(GetLitestepWnd(), LM_UNREGISTERMESSAGE, (WPARAM)hWnd, (LPARAM)msgs);
-
 		DestroyWindow(hWnd);
 	}
 
