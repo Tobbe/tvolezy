@@ -14,6 +14,7 @@ Volume vol(settings);
 
 void bangVol(HWND caller, const char *bangName, const char *args);
 void bangToggleMute(HWND caller, const char *bangName, const char *args);
+void reportVolumeError();
 void reportError(LPCSTR msg);
 LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -75,17 +76,50 @@ void bangVol(HWND caller, const char* bangName, const char* args)
 
 	if (bangName[8] == 'D' || bangName[8] == 'd')
 	{
-		vol.down(steps);
+		if (!vol.down(steps))
+		{
+			reportVolumeError();
+		}
 	}
 	else
 	{
-		vol.up(steps);
+		if (!vol.up(steps))
+		{
+			reportVolumeError();
+		}
 	}
 }
 
 void bangToggleMute(HWND caller, const char* bangName, const char* args)
 {
-	vol.toggleMute();
+	if(!vol.toggleMute())
+	{
+		reportVolumeError();
+	}
+}
+
+void reportVolumeError()
+{
+	switch (vol.getError())
+	{
+		case Volume::ERROR_OPENMIXER:
+			reportError("Could not open mixer");
+			break;
+		case Volume::ERROR_LINEINFO:
+			reportError("Could not get line info");
+			break;
+		case Volume::ERROR_LINECONTROLS:
+			reportError("Could not get line controls");
+			break;
+		case Volume::ERROR_CONTROLDETAILS:
+			reportError("Could not get control details");
+			break;
+		case Volume::ERROR_SETDETAILS:
+			reportError("Could not set control details");
+			break;
+		default:
+			break;
+	}
 }
 
 void reportError(LPCSTR msg)

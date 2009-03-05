@@ -16,19 +16,27 @@ private:
 	MIXERCONTROLDETAILS_UNSIGNED mcdu;
 	MIXERCONTROLDETAILS_BOOLEAN mcdb;
 	const TveSettings &settings;
+	int error;
 
 	void setupMixerStructs();
 	void setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIXERCONTROLDETAILS &mcd);
 	void change(int steps);
-	void reportError(LPCSTR msg);
 	bool isMuted();
 	void setMuted(bool mute);
 
 public:
+	enum {ERROR_NOERROR,
+		ERROR_OPENMIXER, 
+		ERROR_LINEINFO, 
+		ERROR_LINECONTROLS,
+		ERROR_CONTROLDETAILS,
+		ERROR_SETDETAILS};
+
 	Volume(const TveSettings &settings);
-	void up(int steps);
-	void down(int steps);
-	void toggleMute();
+	bool up(int steps);
+	bool down(int steps);
+	bool toggleMute();
+	int getError() const;
 };
 
 #endif

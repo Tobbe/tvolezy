@@ -4,6 +4,7 @@
 
 Volume::Volume(const TveSettings &settings) : settings(settings)
 {
+	error = ERROR_NOERROR;
 	setupMixerStructs();
 }
 
@@ -48,13 +49,13 @@ void Volume::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIX
 {
 	if (mixerOpen(&mixer, 0, 0, 0, MIXER_OBJECTF_HMIXER) != MMSYSERR_NOERROR)
 	{
-		reportError("Couldn't open mixer");
+		error = ERROR_OPENMIXER;
 		return;
 	}
 
 	if (mixerGetLineInfo((HMIXEROBJ)mixer, &ml, MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
 	{
-		reportError("Couldn't get line info");
+		error = ERROR_LINEINFO;
 		return;
 	}
 
@@ -64,7 +65,7 @@ void Volume::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIX
 		MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) != 
 		MMSYSERR_NOERROR)
 	{
-		reportError("Couldn't get line controls");
+		error = ERROR_LINECONTROLS;
 		return;
 	}
 
@@ -72,7 +73,7 @@ void Volume::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIX
 
 	if (mixerGetControlDetails((HMIXEROBJ)mixer, &mcd, MIXER_SETCONTROLDETAILSF_VALUE) != MMSYSERR_NOERROR)
 	{
-		reportError("Couldn't get control details");
+		error = ERROR_CONTROLDETAILS;
 		return;
 	}
 }
@@ -87,19 +88,11 @@ void Volume::change(int steps)
 
 	if (mixerSetControlDetails((HMIXEROBJ)mixer, &mcdVol, MIXER_SETCONTROLDETAILSF_VALUE) != MMSYSERR_NOERROR)
 	{
-		reportError("Couldn't set volume");
+		error = ERROR_SETDETAILS;
 		return;
 	}
 
 	mixerClose(mixer);
-}
-
-void Volume::reportError(LPCSTR msg)
-{
-	if (settings.showErrors)
-	{
-		MessageBox(NULL, msg, "tVolEzy error", MB_OK | MB_ICONERROR);
-	}
 }
 
 bool Volume::isMuted()
@@ -119,14 +112,14 @@ void Volume::setMuted(bool mute)
 
 	if (mixerSetControlDetails((HMIXEROBJ)mixer, &mcdMute, MIXER_SETCONTROLDETAILSF_VALUE) != MMSYSERR_NOERROR)
 	{
-		reportError("Couldn't set volume");
+		error = ERROR_SETDETAILS;
 		return;
 	}
 
 	mixerClose(mixer);
 }
 
-void Volume::up(int steps)
+bool Volume::up(int steps)
 {
 	change(steps);
 
@@ -134,9 +127,11 @@ void Volume::up(int steps)
 	{
 		setMuted(false);
 	}
+
+	return error == ERROR_NOERROR;
 }
 
-void Volume::down(int steps)
+bool Volume::down(int steps)
 {
 	change(-steps);
 
@@ -144,9 +139,18 @@ void Volume::down(int steps)
 	{
 		setMuted(false);
 	}
+
+	return error == ERROR_NOERROR;
 }
 
-void Volume::toggleMute()
+bool Volume::toggleMute()
 {
 	setMuted(!isMuted());
+	
+	return error == ERROR_NOERROR;
+}
+
+int Volume::getError() const
+{
+	return error;
 }
