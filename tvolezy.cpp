@@ -153,10 +153,6 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			hWnd = NULL;
 			return 0;
 
-		case WM_APPCOMMAND:
-			MessageBox(hWndParent, "Error registering tVolEzy window class", "tVolEzy error", MB_OK);
-			return 1;
-
 		default:
 			break;
 	}
