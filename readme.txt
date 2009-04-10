@@ -6,17 +6,24 @@ commands. It's for those of you who just want to control your volume and
 don't need to display a slider or anything like that.
 
 
-Loading the module
-------------------
+Installing and loading the module
+---------------------------------
 
-There are no settings to write in step.rc (or any of the included files, like
-To load the module, use either
+Classic Setup:
 
-    LoadModule "$ModulesDir$tVolEzy-0.1.dll"
+    Put tVolEzy.dll in a directory of your choice, e.g.
+    C:\Program Files\Litestep\Modules\. Open your step.rc and add a LoadModule
+    line pointing to the dll, for example:
 
-or the newer NetLoadModule
+    LoadModule "C:\Program Files\Litestep\Modules\DefaultApps.dll"
+
+NetLoadModule (OTS2) Setup:
+
+    Add the following line to your step.rc/theme.rc/personal.rc/whatever:
 
     *NetLoadModule tVolEzy-0.1
+
+Then save the file you just edited and recycle LiteStep.
 
 
 .rc settings and commands
