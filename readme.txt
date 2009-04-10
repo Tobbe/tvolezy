@@ -15,7 +15,7 @@ Classic Setup:
     C:\Program Files\Litestep\Modules\. Open your step.rc and add a LoadModule
     line pointing to the dll, for example:
 
-    LoadModule "C:\Program Files\Litestep\Modules\DefaultApps.dll"
+    LoadModule "C:\Program Files\Litestep\Modules\tVolEzy.dll"
 
 NetLoadModule (OTS2) Setup:
 
