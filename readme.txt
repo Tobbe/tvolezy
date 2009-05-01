@@ -5,6 +5,9 @@ This module is supposed to control the main system volume using simple bang
 commands. It's for those of you who just want to control your volume and
 don't need to display a slider or anything like that.
 
+The module has only been tested on Windows XP, but should work on 2000 as well.
+It will not work on Vista or newer.
+
 
 Installing and loading the module
 ---------------------------------
@@ -63,5 +66,5 @@ tVolEzyUnmuteOnVolDown false
 Version history
 ---------------
 
-Tobbe 2009-09-13 tVolEzy 0.1
+Tobbe 2009-05-01 tVolEzy 0.1
     Released the first version, 0.1.
