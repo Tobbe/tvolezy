@@ -11,27 +11,27 @@ Volume::Volume(const TveSettings &settings) : settings(settings)
 void Volume::setupMixerStructs()
 {
 	// General
-	memset(&ml, 0, sizeof(ml));
+	ZeroMemory(&ml, sizeof(ml));
 	ml.cbStruct = sizeof(MIXERLINE);
 	ml.dwComponentType = MIXERLINE_COMPONENTTYPE_DST_SPEAKERS;
 
-	memset(&mc, 0, sizeof(mc));
+	ZeroMemory(&mc, sizeof(mc));
 
 	// Volume
-	memset(&mlcVol, 0, sizeof(mlcVol));
+	ZeroMemory(&mlcVol, sizeof(mlcVol));
 	mlcVol.dwControlType = MIXERCONTROL_CONTROLTYPE_VOLUME;
 	mlcVol.cbStruct = sizeof(MIXERLINECONTROLS);
-	mlcVol.dwLineID = 0;
-	mlcVol.cControls = 1;
+	mlcVol.dwLineID = ml.dwLineID;
+	mlcVol.cControls = ml.cControls;
 	mlcVol.cbmxctrl = sizeof(MIXERCONTROL);
 	mlcVol.pamxctrl = &mc;
 
-	memset(&mcdVol, 0, sizeof(mcdVol));
-	memset(&mcdu, 0, sizeof(mcdu));
+	ZeroMemory(&mcdVol, sizeof(mcdVol));
+	ZeroMemory(&mcdu, sizeof(mcdu));
 	mcdVol.paDetails = &mcdu;
 	mcdVol.cbDetails = sizeof(MIXERCONTROLDETAILS_UNSIGNED);
 	mcdVol.cbStruct = sizeof(MIXERCONTROLDETAILS);
-	mcdVol.dwControlID = 0;
+	mcdVol.dwControlID = mlcVol.dwControlID;
 	mcdVol.cChannels = 1;
 	mcdVol.cMultipleItems = 0;
 
@@ -40,14 +40,14 @@ void Volume::setupMixerStructs()
 	mlcMute.dwControlType = MIXERCONTROL_CONTROLTYPE_MUTE;
 
 	memcpy(&mcdMute, &mcdVol, sizeof(mcdMute));
-	memset(&mcdb, 0, sizeof(mcdb));
+	ZeroMemory(&mcdb, sizeof(mcdb));
 	mcdMute.paDetails = &mcdb;
 	mcdMute.cbDetails = sizeof(MIXERCONTROLDETAILS_BOOLEAN);
 }
 
 void Volume::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIXERCONTROLDETAILS &mcd)
 {
-	if (mixerOpen(&mixer, 0, 0, 0, MIXER_OBJECTF_HMIXER) != MMSYSERR_NOERROR)
+	if (mixerOpen(&mixer, 0, NULL, 0, MIXER_OBJECTF_HMIXER) != MMSYSERR_NOERROR)
 	{
 		error = ERROR_OPENMIXER;
 		return;
