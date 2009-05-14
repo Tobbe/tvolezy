@@ -48,6 +48,7 @@
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="1"
 				BufferSecurityCheck="false"
+				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -202,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\volvista.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\volxp.cpp"
 				>
 			</File>
@@ -221,6 +226,10 @@
 			</File>
 			<File
 				RelativePath=".\volume.h"
+				>
+			</File>
+			<File
+				RelativePath=".\volvista.h"
 				>
 			</File>
 			<File
