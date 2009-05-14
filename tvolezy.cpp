@@ -4,6 +4,7 @@
 #include <windows.h>
 #include "tvolezy.h"
 #include "volxp.h"
+#include "volvista.h"
 
 HWND hWnd;
 HWND hWndParent;
@@ -27,10 +28,21 @@ BOOL WINAPI DllMain(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 
 extern "C" int __cdecl initModuleEx(HWND parentWnd, HINSTANCE dllInst, LPCSTR szPath)
 {
-	szPath=szPath;
 	hWndParent = parentWnd;
 
-	vol = new VolXP(settings);
+	OSVERSIONINFO osvi;
+	osvi.dwOSVersionInfoSize = sizeof(osvi);
+
+	GetVersionEx(&osvi);
+
+	if (osvi.dwPlatformId == VER_PLATFORM_WIN32_NT && osvi.dwMajorVersion >= 6)
+	{
+		vol = new VolVista(settings);
+	}
+	else
+	{
+		vol = new VolXP(settings);
+	}
 
 	readSettings();
 
