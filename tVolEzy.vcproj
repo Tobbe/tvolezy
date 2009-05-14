@@ -202,7 +202,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\volume.cpp"
+				RelativePath=".\volxp.cpp"
 				>
 			</File>
 		</Filter>
@@ -220,7 +220,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\volume.h"
+				RelativePath=".\volxp.h"
 				>
 			</File>
 		</Filter>

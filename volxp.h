@@ -4,7 +4,7 @@
 #include "tvesettings.h"
 #include <windows.h>
 
-class Volume
+class VolXP
 {
 private:
 	MIXERLINE ml;
@@ -32,7 +32,7 @@ public:
 		ERROR_CONTROLDETAILS,
 		ERROR_SETDETAILS};
 
-	Volume(const TveSettings &settings);
+	VolXP(const TveSettings &settings);
 	bool up(int steps);
 	bool down(int steps);
 	bool toggleMute();

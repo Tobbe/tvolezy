@@ -1,14 +1,14 @@
-#include "volume.h"
+#include "volxp.h"
 #include "tvesettings.h"
 #include <windows.h>
 
-Volume::Volume(const TveSettings &settings) : settings(settings)
+VolXP::VolXP(const TveSettings &settings) : settings(settings)
 {
 	error = ERROR_NOERROR;
 	setupMixerStructs();
 }
 
-void Volume::setupMixerStructs()
+void VolXP::setupMixerStructs()
 {
 	// General
 	ZeroMemory(&ml, sizeof(ml));
@@ -45,7 +45,7 @@ void Volume::setupMixerStructs()
 	mcdMute.cbDetails = sizeof(MIXERCONTROLDETAILS_BOOLEAN);
 }
 
-void Volume::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIXERCONTROLDETAILS &mcd)
+void VolXP::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIXERCONTROLDETAILS &mcd)
 {
 	if (mixerOpen(&mixer, 0, NULL, 0, MIXER_OBJECTF_HMIXER) != MMSYSERR_NOERROR)
 	{
@@ -61,8 +61,8 @@ void Volume::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIX
 
 	mlc.dwLineID = ml.dwLineID;
 
-	if (mixerGetLineControls((HMIXEROBJ)mixer, &mlc, 
-		MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) != 
+	if (mixerGetLineControls((HMIXEROBJ)mixer, &mlc,
+		MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) !=
 		MMSYSERR_NOERROR)
 	{
 		error = ERROR_LINECONTROLS;
@@ -78,7 +78,7 @@ void Volume::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIX
 	}
 }
 
-void Volume::change(int steps)
+void VolXP::change(int steps)
 {
 	HMIXER mixer;
 	setupMixerControlDetails(mixer, mlcVol, mcdVol);
@@ -95,7 +95,7 @@ void Volume::change(int steps)
 	mixerClose(mixer);
 }
 
-bool Volume::isMuted()
+bool VolXP::isMuted()
 {
 	HMIXER mixer;
 	setupMixerControlDetails(mixer, mlcMute, mcdMute);
@@ -103,7 +103,7 @@ bool Volume::isMuted()
 	return mcdb.fValue != 0;
 }
 
-void Volume::setMuted(bool mute)
+void VolXP::setMuted(bool mute)
 {
 	HMIXER mixer;
 	setupMixerControlDetails(mixer, mlcMute, mcdMute);
@@ -119,7 +119,7 @@ void Volume::setMuted(bool mute)
 	mixerClose(mixer);
 }
 
-bool Volume::up(int steps)
+bool VolXP::up(int steps)
 {
 	change(steps);
 
@@ -131,7 +131,7 @@ bool Volume::up(int steps)
 	return error == ERROR_NOERROR;
 }
 
-bool Volume::down(int steps)
+bool VolXP::down(int steps)
 {
 	change(-steps);
 
@@ -143,14 +143,14 @@ bool Volume::down(int steps)
 	return error == ERROR_NOERROR;
 }
 
-bool Volume::toggleMute()
+bool VolXP::toggleMute()
 {
 	setMuted(!isMuted());
-	
+
 	return error == ERROR_NOERROR;
 }
 
-int Volume::getError() const
+int VolXP::getError() const
 {
 	return error;
 }

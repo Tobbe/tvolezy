@@ -3,14 +3,14 @@
 
 #include <windows.h>
 #include "tvolezy.h"
-#include "volume.h"
+#include "volxp.h"
 
 HWND hWnd;
 HWND hWndParent;
 LPCSTR className = "tVolEzyWndClass";
 LPCSTR revID = "tVolEzy 0.1 by Tobbe";
 TveSettings settings;
-Volume vol(settings);
+VolXP vol(settings);
 
 void __cdecl bangVolUp(HWND caller, const char *args);
 void __cdecl bangVolDown(HWND caller, const char *args);
@@ -112,19 +112,19 @@ void reportVolumeError()
 {
 	switch (vol.getError())
 	{
-		case Volume::ERROR_OPENMIXER:
+		case VolXP::ERROR_OPENMIXER:
 			reportError("Could not open mixer");
 			break;
-		case Volume::ERROR_LINEINFO:
+		case VolXP::ERROR_LINEINFO:
 			reportError("Could not get line info");
 			break;
-		case Volume::ERROR_LINECONTROLS:
+		case VolXP::ERROR_LINECONTROLS:
 			reportError("Could not get line controls");
 			break;
-		case Volume::ERROR_CONTROLDETAILS:
+		case VolXP::ERROR_CONTROLDETAILS:
 			reportError("Could not get control details");
 			break;
-		case Volume::ERROR_SETDETAILS:
+		case VolXP::ERROR_SETDETAILS:
 			reportError("Could not set control details");
 			break;
 		default:
