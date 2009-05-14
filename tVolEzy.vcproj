@@ -67,7 +67,7 @@
 				AdditionalDependencies=".\lsapi.lib winmm.lib"
 				OutputFile="$(OutDir)/tVolEzy.dll"
 				LinkIncremental="2"
-				IgnoreAllDefaultLibraries="true"
+				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/tVolEzy.pdb"
 				SubSystem="2"
@@ -187,10 +187,6 @@
 		</Configuration>
 	</Configurations>
 	<References>
-		<ProjectReference
-			ReferencedProjectIdentifier="{4E15033F-45F2-4765-926E-E86660EF6C85}"
-			RelativePathToProject=".\tlibc\tlibc.vcproj"
-		/>
 	</References>
 	<Files>
 		<Filter
