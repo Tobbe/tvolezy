@@ -10,7 +10,7 @@ HWND hWndParent;
 LPCSTR className = "tVolEzyWndClass";
 LPCSTR revID = "tVolEzy 0.1 by Tobbe";
 TveSettings settings;
-VolXP vol(settings);
+Volume *vol;
 
 void __cdecl bangVolUp(HWND caller, const char *args);
 void __cdecl bangVolDown(HWND caller, const char *args);
@@ -29,6 +29,8 @@ extern "C" int __cdecl initModuleEx(HWND parentWnd, HINSTANCE dllInst, LPCSTR sz
 {
 	szPath=szPath;
 	hWndParent = parentWnd;
+
+	vol = new VolXP(settings);
 
 	readSettings();
 
@@ -73,7 +75,7 @@ void __cdecl bangVolUp(HWND caller, const char* args)
 		steps = atoi(args);
 	}
 
-	if (!vol.up(steps))
+	if (!vol->up(steps))
 	{
 		reportVolumeError();
 	}
@@ -87,7 +89,7 @@ void __cdecl bangVolDown(HWND caller, const char* args)
 		steps = atoi(args);
 	}
 
-	if (!vol.down(steps))
+	if (!vol->down(steps))
 	{
 		reportVolumeError();
 	}
@@ -95,7 +97,7 @@ void __cdecl bangVolDown(HWND caller, const char* args)
 
 void __cdecl bangToggleMute(HWND caller, const char* args)
 {
-	if(!vol.toggleMute())
+	if(!vol->toggleMute())
 	{
 		reportVolumeError();
 	}
@@ -110,21 +112,21 @@ void readSettings()
 
 void reportVolumeError()
 {
-	switch (vol.getError())
+	switch (vol->getError())
 	{
-		case VolXP::ERROR_OPENMIXER:
+		case Volume::ERROR_OPENMIXER:
 			reportError("Could not open mixer");
 			break;
-		case VolXP::ERROR_LINEINFO:
+		case Volume::ERROR_LINEINFO:
 			reportError("Could not get line info");
 			break;
-		case VolXP::ERROR_LINECONTROLS:
+		case Volume::ERROR_LINECONTROLS:
 			reportError("Could not get line controls");
 			break;
-		case VolXP::ERROR_CONTROLDETAILS:
+		case Volume::ERROR_CONTROLDETAILS:
 			reportError("Could not get control details");
 			break;
-		case VolXP::ERROR_SETDETAILS:
+		case Volume::ERROR_SETDETAILS:
 			reportError("Could not set control details");
 			break;
 		default:
@@ -167,6 +169,8 @@ extern "C" void __cdecl quitModule(HINSTANCE dllInst)
 	RemoveBangCommand("!tVolEzyUp");
 	RemoveBangCommand("!tVolEzyDown");
 	RemoveBangCommand("!tVolEzyToggleMute");
+
+	delete vol;
 
 	UINT msgs[] = {LM_GETREVID, LM_REFRESH, 0};
 	SendMessage(GetLitestepWnd(), LM_UNREGISTERMESSAGE, (WPARAM)hWnd, (LPARAM)msgs);

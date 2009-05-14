@@ -2,7 +2,7 @@
 #include "tvesettings.h"
 #include <windows.h>
 
-VolXP::VolXP(const TveSettings &settings) : settings(settings)
+VolXP::VolXP(const TveSettings &settings) : Volume(settings)
 {
 	error = ERROR_NOERROR;
 	setupMixerStructs();
@@ -61,8 +61,8 @@ void VolXP::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIXE
 
 	mlc.dwLineID = ml.dwLineID;
 
-	if (mixerGetLineControls((HMIXEROBJ)mixer, &mlc,
-		MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) !=
+	if (mixerGetLineControls((HMIXEROBJ)mixer, &mlc, 
+		MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) != 
 		MMSYSERR_NOERROR)
 	{
 		error = ERROR_LINECONTROLS;
@@ -146,7 +146,7 @@ bool VolXP::down(int steps)
 bool VolXP::toggleMute()
 {
 	setMuted(!isMuted());
-
+	
 	return error == ERROR_NOERROR;
 }
 

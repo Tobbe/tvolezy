@@ -220,6 +220,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\volume.h"
+				>
+			</File>
+			<File
 				RelativePath=".\volxp.h"
 				>
 			</File>

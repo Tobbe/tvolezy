@@ -1,10 +1,11 @@
-#ifndef VOLUME_H_
-#define VOLUME_H_
+#ifndef VOL_XP_H_
+#define VOL_XP_H_
 
 #include "tvesettings.h"
+#include "volume.h"
 #include <windows.h>
 
-class VolXP
+class VolXP : public Volume
 {
 private:
 	MIXERLINE ml;
@@ -15,8 +16,6 @@ private:
 	MIXERCONTROLDETAILS mcdMute;
 	MIXERCONTROLDETAILS_UNSIGNED mcdu;
 	MIXERCONTROLDETAILS_BOOLEAN mcdb;
-	const TveSettings &settings;
-	int error;
 
 	void setupMixerStructs();
 	void setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIXERCONTROLDETAILS &mcd);
@@ -25,13 +24,6 @@ private:
 	void setMuted(bool mute);
 
 public:
-	enum {ERROR_NOERROR,
-		ERROR_OPENMIXER,
-		ERROR_LINEINFO,
-		ERROR_LINECONTROLS,
-		ERROR_CONTROLDETAILS,
-		ERROR_SETDETAILS};
-
 	VolXP(const TveSettings &settings);
 	bool up(int steps);
 	bool down(int steps);
