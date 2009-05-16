@@ -2,7 +2,6 @@
 #include <windows.h>
 #include <mmdeviceapi.h>
 #include <endpointvolume.h>
-#include <stdio.h>
 
 VolVista::VolVista(const TveSettings &settings) : Volume(settings)
 {
@@ -33,7 +32,11 @@ VolVista::~VolVista()
 
 void VolVista::change(int steps)
 {
-	steps;
+	float vol;
+
+	hr = endpointVolume->GetMasterVolumeLevelScalar(&vol);
+	vol = max(0, min(vol + steps/100.0f, 1.0f));
+	hr = endpointVolume->SetMasterVolumeLevelScalar(vol, NULL);
 }
 
 bool VolVista::up(int steps)
@@ -50,6 +53,9 @@ bool VolVista::down(int steps)
 
 bool VolVista::toggleMute()
 {
+	BOOL mute;
+	hr = endpointVolume->GetMute(&mute);
+	hr = endpointVolume->SetMute(!mute, NULL);
 	return true;
 }
 
