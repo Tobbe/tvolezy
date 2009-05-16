@@ -13,6 +13,7 @@ private:
 	IAudioEndpointVolume *endpointVolume;
 
 	void change(int steps);
+	void init();
 
 public:
 	VolVista(const TveSettings &settings);

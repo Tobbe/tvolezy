@@ -6,6 +6,11 @@
 
 VolVista::VolVista(const TveSettings &settings) : Volume(settings)
 {
+	init();
+}
+
+void VolVista::init()
+{
 	error = ERROR_NOERROR;
 	CoInitialize(NULL);
 	IMMDeviceEnumerator *deviceEnumerator = NULL;
@@ -45,6 +50,11 @@ VolVista::VolVista(const TveSettings &settings) : Volume(settings)
 	}
 
 	endpointVolume = NULL;
+
+	if (hr != S_OK)
+	{
+		return;
+	}
 
 	if (defaultDevice)
 	{
