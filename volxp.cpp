@@ -80,6 +80,8 @@ void VolXP::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIXE
 
 void VolXP::change(int steps)
 {
+	error = ERROR_NOERROR;
+
 	HMIXER mixer;
 	setupMixerControlDetails(mixer, mlcVol, mcdVol);
 
@@ -106,6 +108,8 @@ bool VolXP::isMuted()
 
 void VolXP::setMuted(bool mute)
 {
+	error = ERROR_NOERROR;
+
 	HMIXER mixer;
 	setupMixerControlDetails(mixer, mlcMute, mcdMute);
 
