@@ -84,6 +84,7 @@ void VolXP::change(int steps)
 	setupMixerControlDetails(mixer, mlcVol, mcdVol);
 
 	//full volume at 65535
+	steps = (int)(steps * 65535/100.0);
 	mcdu.dwValue = max(0, min((long)mcdu.dwValue + steps, 65535));
 
 	if (mixerSetControlDetails((HMIXEROBJ)mixer, &mcdVol, MIXER_SETCONTROLDETAILSF_VALUE) != MMSYSERR_NOERROR)
