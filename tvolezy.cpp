@@ -141,6 +141,51 @@ void reportVolumeError()
 		case Volume::ERROR_SETDETAILS:
 			reportError("Could not set control details");
 			break;
+		case Volume::ERROR_ACTIVATE:
+			reportError("Could not activate endpoint device");
+			break;
+		case Volume::ERROR_GETDEFAULT:
+			reportError("Could not get default endpoint device");
+			break;
+		case Volume::ERROR_GETMUTE:
+			reportError("Could not get current mute status");
+			break;
+		case Volume::ERROR_GETVOL:
+			reportError("Could not get current volume");
+			break;
+		case Volume::ERROR_INVALIDARG:
+			reportError("The pActivationParams parameter must be NULL for \
+				the specified interface; or pActivationParams points \
+				to invalid data.");
+			break;
+		case Volume::ERROR_NOIFACE:
+			reportError("The object does not support the requested interface type.");
+			break;
+		case Volume::ERROR_NOTFOUND:
+			reportError("No device is available");
+			break;
+		case Volume::ERROR_OUTOFMEM:
+			reportError("Out of memory");
+			break;
+		case Volume::ERROR_OUTOFRANGE:
+			reportError("Parameter is out of range");
+			break;
+		case Volume::ERROR_PPDEVICENULL:
+			reportError("ppDevice is NULL");
+			break;
+		case Volume::ERROR_PPINTERFACENULL:
+			reportError("ppInterface is NULL");
+			break;
+		case Volume::ERROR_REMOVED:
+			reportError("The audio endpoint device or the adapter device that \
+				the endpoint device connects to has been removed");
+			break;
+		case Volume::ERROR_SETMUTE:
+			reportError("Could not mute the volume");
+			break;
+		case Volume::ERROR_SETVOL:
+			reportError("Could not set the volume");
+			break;
 		default:
 			break;
 	}
