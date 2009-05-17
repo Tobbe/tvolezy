@@ -5,8 +5,8 @@ This module is supposed to control the main system volume using simple bang
 commands. It's for those of you who just want to control your volume and
 don't need to display a slider or anything like that.
 
-The module has only been tested on Windows XP, but should work on 2000 as well.
-It will not work on Vista or newer.
+The module has only been tested on Windows XP and Windows 7, but should work on
+anything from Windows 2000 and up.
 
 
 Installing and loading the module
@@ -24,7 +24,7 @@ NetLoadModule (OTS2) Setup:
 
     Add the following line to your step.rc/theme.rc/personal.rc/whatever:
 
-    *NetLoadModule tVolEzy-0.1
+    *NetLoadModule tVolEzy-1.0
 
 Then save the file you just edited and recycle LiteStep.
 
@@ -50,12 +50,12 @@ tVolEzyUnmuteOnVolDown false
 
 !tVolEzyUp 1
     Increases the volume the specified amount of steps. Minimum volume is 0 and
-    full volume is 65535.
+    full volume is 100.
     The parameter is optional and defaults to 1 if not specified.
 
 !tVolEzyDown 1
     Decreases the volume the specified amount of steps. Minimum volume is 0 and
-    full volume is 65535.
+    full volume is 100.
     The parameter is optional and defaults to 1 if not specified.
 
 !tVolEzyToggleMute
@@ -65,6 +65,9 @@ tVolEzyUnmuteOnVolDown false
 
 Version history
 ---------------
+
+Tobbe 2009-05-17 tVolEzy 1.0
+    Added support for Windows Vista and newer.
 
 Tobbe 2009-05-01 tVolEzy 0.1
     Released the first version, 0.1.
