@@ -127,12 +127,24 @@ void VolVista::change(int steps)
 bool VolVista::up(int steps)
 {
 	change(steps);
+
+	if (settings.unmuteOnVolUp)
+	{
+		hr = endpointVolume->SetMute(false, NULL);
+	}
+
 	return error == ERROR_NOERROR;
 }
 
 bool VolVista::down(int steps)
 {
 	change(-steps);
+
+	if (settings.unmuteOnVolDown)
+	{
+		hr = endpointVolume->SetMute(false, NULL);
+	}
+
 	return error == ERROR_NOERROR;
 }
 
