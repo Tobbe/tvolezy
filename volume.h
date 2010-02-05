@@ -7,6 +7,8 @@ class Volume
 {
 protected:
 	const TveSettings &settings;
+	void (*volChangedCallback)(int);
+	void (*muteChangedCallback)(bool);
 	int error;
 
 public:
@@ -29,14 +31,17 @@ public:
 		ERROR_NOIFACE,
 		ERROR_INVALIDARG,
 		ERROR_REMOVED,
-		ERROR_ACTIVATE};
+		ERROR_ACTIVATE,
+		ERROR_CALLBACK};
 
-	Volume(const TveSettings &settings) : settings(settings) {}
-	virtual ~Volume() {}
+	Volume(const TveSettings &settings);
+	virtual ~Volume();
 	virtual bool up(int steps) = 0;
 	virtual bool down(int steps) = 0;
 	virtual bool toggleMute() = 0;
 	virtual int getError() const = 0;
+	void setVolChangedCallback(void (*volChangedCallback)(int));
+	void setMuteChangedCallback(void (*muteChangedCallback)(bool));
 };
 
 #endif

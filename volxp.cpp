@@ -2,10 +2,91 @@
 #include "tvesettings.h"
 #include <windows.h>
 
-VolXP::VolXP(const TveSettings &settings) : Volume(settings)
+VolXP::VolXP(const TveSettings &settings) :
+	WND_CLASS_NAME("tVolEzy Callback Wnd"), Volume(settings),
+	hCallbackWnd(NULL), mixer(NULL)
 {
 	error = ERROR_NOERROR;
+
+	createCallbackWindow();
 	setupMixerStructs();
+
+	openMixerAndGetLineInfo();
+	getLineControls();
+}
+
+VolXP::~VolXP()
+{
+	mixerClose(mixer);
+	DestroyWindow(hCallbackWnd);
+	UnregisterClass(WND_CLASS_NAME, hInstance);
+}
+
+void VolXP::createCallbackWindow()
+{
+	hInstance = GetModuleHandle(0);
+
+	WNDCLASSEX wcx;
+	memset(&wcx, 0, sizeof(WNDCLASSEX));
+	wcx.cbSize = sizeof(WNDCLASSEX);
+	wcx.lpszClassName = WND_CLASS_NAME;
+	wcx.lpfnWndProc = (WNDPROC)callbackWndProc;
+	wcx.hInstance = hInstance;
+	wcx.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	RegisterClassEx(&wcx);
+
+	hCallbackWnd = CreateWindow(WND_CLASS_NAME,
+		"tVolEzy Callback Wnd",
+		WS_POPUP | WS_DISABLED,
+		0, 0, 0, 0,
+		NULL, NULL, hInstance, (void *)this);
+
+	if (!hCallbackWnd)
+	{
+		error = ERROR_CALLBACK;
+		return;
+	}
+}
+
+LRESULT CALLBACK VolXP::callbackWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	VolXP *pThis = NULL;
+
+	if (uMsg == WM_NCCREATE)
+	{
+		// get the pointer to the window from lpCreateParams which was set in CreateWindow
+		SetWindowLong(hwnd, GWL_USERDATA, (long)((LPCREATESTRUCT(lParam))->lpCreateParams));
+	}
+
+	pThis = (VolXP *)GetWindowLong(hwnd, GWL_USERDATA);
+
+	if (pThis && uMsg == MM_MIXM_CONTROL_CHANGE)
+	{
+		pThis->onControlChanged(reinterpret_cast<HMIXER>(wParam), static_cast<DWORD>(lParam));
+	}
+
+	return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+void VolXP::onControlChanged(HMIXER hMixer, DWORD dwControlID)
+{
+	if (hMixer == mixer)
+	{
+		if (dwControlID == mcdVol.dwControlID)
+		{
+			if (volChangedCallback != NULL)
+			{
+				volChangedCallback(getVolume());
+			}
+		}
+		else if (dwControlID == mcdMute.dwControlID)
+		{
+			if (muteChangedCallback != NULL)
+			{
+				muteChangedCallback(isMuted());
+			}
+		}
+	}
 }
 
 void VolXP::setupMixerStructs()
@@ -45,23 +126,27 @@ void VolXP::setupMixerStructs()
 	mcdMute.cbDetails = sizeof(MIXERCONTROLDETAILS_BOOLEAN);
 }
 
-void VolXP::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIXERCONTROLDETAILS &mcd)
+void VolXP::openMixerAndGetLineInfo()
 {
-	if (mixerOpen(&mixer, 0, NULL, 0, MIXER_OBJECTF_HMIXER) != MMSYSERR_NOERROR)
+	if (mixerOpen(&mixer, 0, reinterpret_cast<DWORD>(hCallbackWnd), 0, CALLBACK_WINDOW | MIXER_OBJECTF_MIXER) != MMSYSERR_NOERROR)
 	{
 		error = ERROR_OPENMIXER;
 		return;
 	}
 
-	if (mixerGetLineInfo((HMIXEROBJ)mixer, &ml, MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
+	// used to get dwLineID
+	if (mixerGetLineInfo(reinterpret_cast<HMIXEROBJ>(mixer), &ml, MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
 	{
 		error = ERROR_LINEINFO;
 		return;
 	}
+}
 
-	mlc.dwLineID = ml.dwLineID;
+void VolXP::getLineControls()
+{
+	mlcVol.dwLineID = ml.dwLineID;
 
-	if (mixerGetLineControls((HMIXEROBJ)mixer, &mlc, 
+	if (mixerGetLineControls(reinterpret_cast<HMIXEROBJ>(mixer), &mlcVol,
 		MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) != 
 		MMSYSERR_NOERROR)
 	{
@@ -69,59 +154,70 @@ void VolXP::setupMixerControlDetails(HMIXER &mixer, MIXERLINECONTROLS &mlc, MIXE
 		return;
 	}
 
-	mcd.dwControlID = mc.dwControlID;
+	minVol = mc.Bounds.dwMinimum;
+	maxVol = mc.Bounds.dwMaximum;
+	mcdVol.dwControlID = mc.dwControlID;
 
-	if (mixerGetControlDetails((HMIXEROBJ)mixer, &mcd, MIXER_SETCONTROLDETAILSF_VALUE) != MMSYSERR_NOERROR)
+	mlcMute.dwLineID = ml.dwLineID;
+
+	if (mixerGetLineControls(reinterpret_cast<HMIXEROBJ>(mixer), &mlcMute,
+		MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE)
+		!= MMSYSERR_NOERROR)
 	{
-		error = ERROR_CONTROLDETAILS;
+		error = ERROR_LINECONTROLS;
 		return;
 	}
+
+	mcdMute.dwControlID = mc.dwControlID;
+}
+
+void VolXP::getControlDetails(MIXERCONTROLDETAILS *mcd)
+{
+	if (mixerGetControlDetails(reinterpret_cast<HMIXEROBJ>(mixer), mcd,
+		MIXER_OBJECTF_HMIXER | MIXER_SETCONTROLDETAILSF_VALUE)
+		!= MMSYSERR_NOERROR)
+	{
+		error = ERROR_CONTROLDETAILS;
+	}
+}
+
+void VolXP::setControlDetails(MIXERCONTROLDETAILS *mcd)
+{
+	if (mixerSetControlDetails(reinterpret_cast<HMIXEROBJ>(mixer), mcd,
+		MIXER_OBJECTF_HMIXER | MIXER_SETCONTROLDETAILSF_VALUE)
+		!= MMSYSERR_NOERROR)
+	{
+		error = ERROR_SETDETAILS;
+	}
+}
+
+int VolXP::getVolume()
+{
+	getControlDetails(&mcdVol);
+	
+	return mcdu.dwValue;
 }
 
 void VolXP::change(int steps)
 {
-	error = ERROR_NOERROR;
+	steps = (int)(steps * maxVol/100.0);
+	mcdu.dwValue = max(minVol, min(getVolume() + steps, maxVol));
 
-	HMIXER mixer;
-	setupMixerControlDetails(mixer, mlcVol, mcdVol);
-
-	//full volume at 65535
-	steps = (int)(steps * 65535/100.0);
-	mcdu.dwValue = max(0, min((long)mcdu.dwValue + steps, 65535));
-
-	if (mixerSetControlDetails((HMIXEROBJ)mixer, &mcdVol, MIXER_SETCONTROLDETAILSF_VALUE) != MMSYSERR_NOERROR)
-	{
-		error = ERROR_SETDETAILS;
-		return;
-	}
-
-	mixerClose(mixer);
+	setControlDetails(&mcdVol);
 }
 
 bool VolXP::isMuted()
 {
-	HMIXER mixer;
-	setupMixerControlDetails(mixer, mlcMute, mcdMute);
-
+	getControlDetails(&mcdMute);
+	
 	return mcdb.fValue != 0;
 }
 
 void VolXP::setMuted(bool mute)
 {
-	error = ERROR_NOERROR;
-
-	HMIXER mixer;
-	setupMixerControlDetails(mixer, mlcMute, mcdMute);
-
 	mcdb.fValue = mute;
 
-	if (mixerSetControlDetails((HMIXEROBJ)mixer, &mcdMute, MIXER_SETCONTROLDETAILSF_VALUE) != MMSYSERR_NOERROR)
-	{
-		error = ERROR_SETDETAILS;
-		return;
-	}
-
-	mixerClose(mixer);
+	setControlDetails(&mcdMute);
 }
 
 bool VolXP::up(int steps)

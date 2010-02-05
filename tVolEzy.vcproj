@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\volume.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\volvista.cpp"
 				>
 			</File>

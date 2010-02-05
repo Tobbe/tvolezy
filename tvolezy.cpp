@@ -2,6 +2,8 @@
 #define NOCRYPT
 
 #include <windows.h>
+#include <string>
+#include <sstream>
 #include "tvolezy.h"
 #include "volxp.h"
 #include "volvista.h"
@@ -19,6 +21,8 @@ void __cdecl bangToggleMute(HWND caller, const char *args);
 void readSettings();
 void reportVolumeError();
 void reportError(LPCSTR msg);
+void volumeChanged(int newValue);
+void muteChanged(bool newValue);
 LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 BOOL WINAPI DllMain(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
@@ -43,6 +47,9 @@ extern "C" int __cdecl initModuleEx(HWND parentWnd, HINSTANCE dllInst, LPCSTR sz
 	{
 		vol = new VolXP(settings);
 	}
+
+	vol->setVolChangedCallback(volumeChanged);
+	vol->setMuteChangedCallback(muteChanged);
 
 	readSettings();
 
@@ -120,6 +127,11 @@ void readSettings()
 	settings.showErrors = GetRCBoolDef("tVolEzyShowErrors", TRUE) != FALSE;
 	settings.unmuteOnVolUp = GetRCBoolDef("tVolEzyUnmuteOnVolUp", TRUE) != FALSE;
 	settings.unmuteOnVolDown = GetRCBoolDef("tVolEzyUnmuteOnVolDown", FALSE) != FALSE;
+	char buffer[1024];
+	GetRCString("tVolEzyVolumeChangedCommand", buffer, "!none", 1024);
+	settings.volumeChangedCommand = buffer;
+	GetRCString("tVolEzyMuteChangedCommand", buffer, "!none", 1024);
+	settings.muteChangedCommand = buffer;
 }
 
 void reportVolumeError()
@@ -186,6 +198,9 @@ void reportVolumeError()
 		case Volume::ERROR_SETVOL:
 			reportError("Could not set the volume");
 			break;
+		case Volume::ERROR_CALLBACK:
+			reportError("Error while creating callback");
+			break;
 		default:
 			break;
 	}
@@ -197,6 +212,54 @@ void reportError(LPCSTR msg)
 	{
 		MessageBox(NULL, msg, "tVolEzy error", MB_OK | MB_ICONERROR);
 	}
+}
+
+void volumeChanged(int newValue)
+{
+	std::string command = settings.volumeChangedCommand;
+	std::string::size_type volTokenIndex = command.find("#VOLUME#", 0);
+	std::string commandFirstPart = "";
+	std::string commandLastPart = "";
+	if (volTokenIndex != std::string::npos)
+	{
+		commandFirstPart = command.substr(0, volTokenIndex);
+		commandLastPart = command.substr(volTokenIndex + 8);
+	}
+
+	std::ostringstream cmd;
+	cmd << commandFirstPart << newValue << commandLastPart;
+
+	LSExecute(NULL, cmd.str().c_str(), SW_HIDE);
+}
+
+void muteChanged(bool newValue)
+{
+	std::string command = settings.muteChangedCommand;
+	std::string::size_type volTokenIndex = command.find("#MUTE#", 0);
+	std::string commandFirstPart = "";
+	std::string commandLastPart = "";
+	if (volTokenIndex != std::string::npos)
+	{
+		commandFirstPart = command.substr(0, volTokenIndex);
+		commandLastPart = command.substr(volTokenIndex + 6);
+	}
+
+	std::ostringstream cmd;
+
+	cmd << commandFirstPart;
+
+	if (newValue)
+	{
+		cmd << "muted";
+	}
+	else
+	{
+		cmd << "unmuted";
+	}
+
+	cmd << commandLastPart;
+
+	LSExecute(NULL, cmd.str().c_str(), SW_HIDE);
 }
 
 LRESULT CALLBACK wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
