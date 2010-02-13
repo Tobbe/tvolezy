@@ -9,11 +9,30 @@
 class VolVista : public Volume
 {
 private:
+	class VolumeNotification : public IAudioEndpointVolumeCallback
+	{
+	private:
+		LONG refCount; 
+		int currentVolume;
+		const VolVista &parent;
+	protected:
+		~VolumeNotification();
+	public:
+		VolumeNotification(const VolVista& outer);
+		STDMETHODIMP_(ULONG)AddRef();
+		STDMETHODIMP_(ULONG)Release(); 
+		STDMETHODIMP QueryInterface(REFIID IID, void **returnValue);
+		STDMETHODIMP OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA notificationData);
+	};
+
 	HRESULT hr;
 	IAudioEndpointVolume *endpointVolume;
+	VolumeNotification *volNotification;
 
 	void change(int steps);
 	void init();
+	void checkAudioEndpointResultForError(HRESULT hr);
+	void checkActivateResultForError(HRESULT hr);
 
 public:
 	VolVista(const TveSettings &settings);

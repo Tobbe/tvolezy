@@ -3,8 +3,9 @@
 #include <audioclient.h>
 #include <mmdeviceapi.h>
 #include <endpointvolume.h>
+#include <strsafe.h>
 
-VolVista::VolVista(const TveSettings &settings) : Volume(settings)
+VolVista::VolVista(const TveSettings &settings) : Volume(settings), volNotification(NULL)
 {
 	init();
 }
@@ -18,7 +19,46 @@ void VolVista::init()
 	IMMDevice *defaultDevice = NULL;
 
 	hr = deviceEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &defaultDevice);
+	checkAudioEndpointResultForError(hr);
 
+	deviceEnumerator->Release();
+	deviceEnumerator = NULL;
+
+	endpointVolume = NULL;
+
+	if (hr != S_OK)
+	{
+		return;
+	}
+
+	if (defaultDevice)
+	{
+		hr = defaultDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL, (LPVOID *)&endpointVolume);
+		checkActivateResultForError(hr);
+
+		volNotification = new VolumeNotification(*this);
+		hr = endpointVolume->RegisterControlChangeNotify(volNotification); 
+
+		defaultDevice->Release();
+		defaultDevice = NULL; 
+	}
+}
+
+VolVista::~VolVista()
+{
+	if (endpointVolume)
+	{
+		endpointVolume->UnregisterControlChangeNotify(volNotification); 
+		endpointVolume->Release();
+		endpointVolume = NULL;
+		volNotification->Release(); 
+	}
+
+	CoUninitialize();
+}
+
+void VolVista::checkAudioEndpointResultForError(HRESULT hr)
+{
 	switch (hr)
 	{
 	case S_OK:
@@ -42,25 +82,10 @@ void VolVista::init()
 	{
 		error = ERROR_NOTFOUND;
 	}
+}
 
-	if (deviceEnumerator != NULL)
-	{
-		deviceEnumerator->Release();
-		deviceEnumerator = NULL;
-	}
-
-	endpointVolume = NULL;
-
-	if (hr != S_OK)
-	{
-		return;
-	}
-
-	if (defaultDevice)
-	{
-		hr = defaultDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL, (LPVOID *)&endpointVolume);
-	}
-
+void VolVista::checkActivateResultForError(HRESULT hr)
+{
 	switch (hr)
 	{
 	case S_OK:
@@ -83,23 +108,6 @@ void VolVista::init()
 	default:
 		error = ERROR_ACTIVATE;
 	}
-
-	if (defaultDevice != NULL)
-	{
-		defaultDevice->Release();
-		defaultDevice = NULL; 
-	}
-}
-
-VolVista::~VolVista()
-{
-	if (endpointVolume)
-	{
-		endpointVolume->Release();
-		endpointVolume = NULL;
-	}
-
-	CoUninitialize();
 }
 
 void VolVista::change(int steps)
@@ -173,4 +181,60 @@ bool VolVista::toggleMute()
 int VolVista::getError() const
 {
 	return error;
+}
+
+VolVista::VolumeNotification::VolumeNotification(const VolVista &outer) : refCount(1), currentVolume(-1), parent(outer)
+{ 
+}
+
+VolVista::VolumeNotification::~VolumeNotification()
+{
+}
+
+STDMETHODIMP_(ULONG) VolVista::VolumeNotification::AddRef()
+{
+	return InterlockedIncrement(&refCount);
+}
+
+STDMETHODIMP_(ULONG) VolVista::VolumeNotification::Release()
+{
+	LONG ref = InterlockedDecrement(&refCount);
+
+	if (ref == 0)
+	{
+		delete this; 
+	}
+
+	return ref;
+}
+
+STDMETHODIMP VolVista::VolumeNotification::QueryInterface(REFIID IID, void **returnValue)
+{
+	if (IID == IID_IUnknown || IID == __uuidof(IAudioEndpointVolumeCallback))
+	{
+		*returnValue = static_cast<IUnknown*>(this);
+		AddRef();
+
+		return S_OK;
+	}
+
+	*returnValue = NULL;
+
+	return E_NOINTERFACE;
+}
+
+STDMETHODIMP VolVista::VolumeNotification::OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA notificationData)
+{
+	int tmpVol = static_cast<int>(notificationData->fMasterVolume * 100 + 0.5);
+	if (currentVolume != tmpVol)
+	{
+		currentVolume = tmpVol;
+		parent.volChangedCallback(currentVolume);
+	}
+	else
+	{
+		parent.muteChangedCallback(notificationData->bMuted != FALSE);
+	}
+
+	return S_OK;
 }
