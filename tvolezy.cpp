@@ -11,7 +11,7 @@
 HWND hWnd;
 HWND hWndParent;
 LPCSTR className = "tVolEzyWndClass";
-LPCSTR revID = "tVolEzy 1.0 by Tobbe";
+LPCSTR revID = "tVolEzy 2.0 by Tobbe";
 TveSettings settings;
 Volume *vol;
 

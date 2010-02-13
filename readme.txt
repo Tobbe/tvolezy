@@ -24,7 +24,7 @@ NetLoadModule (OTS2) Setup:
 
     Add the following line to your step.rc/theme.rc/personal.rc/whatever:
 
-    *NetLoadModule tVolEzy-1.0
+    *NetLoadModule tVolEzy-2.0
 
 Then save the file you just edited and recycle LiteStep.
 
@@ -62,9 +62,24 @@ tVolEzyUnmuteOnVolDown false
     Use this !bang to mute or unmute the sound. !tVolEzyToggleMute mutes the
     system sound when it isn't muted and unmutes it when it is muted.
 
+!tVolEzyVolumeChangedCommand
+    Sets a command to be executed when the system volume changes. #VOLUME# will
+    be replaced by the actual system volume.
+    Example: tVolEzyVolumeChangedCommand "!CommandSetText New Volume: #VOLUME#"
+    A parameter must be supplied, there is no default.
+
+!tVolEzyMuteChangedCommand
+    Sets a commadn to be executed when the system mute status changes. #MUTE"
+    will be replaced by "muted" or "unmuted" without the quotes.
+    Example: tVolEzyMuteChangedCommand "!CommandSetText Mute Changed: #MUTE#"
+    A parameter must be supplied, there is no default.
+
 
 Version history
 ---------------
+
+Tobbe 2010-02-13 tVolEzy 2.0
+    Added volume and mute change notification.
 
 Tobbe 2009-05-17 tVolEzy 1.0
     Added support for Windows Vista and newer.
