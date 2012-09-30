@@ -1,5 +1,8 @@
 *.ncb
 *.suo
+*.sdf
 *.vcproj.*
-*Release/
-*Debug/
+*.vcxproj.user
+*Release*/
+*Debug*/
+ipch/
