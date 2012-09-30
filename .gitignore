@@ -3,6 +3,6 @@
 *.sdf
 *.vcproj.*
 *.vcxproj.user
-*Release/
-*Debug/
+*Release*/
+*Debug*/
 ipch/
