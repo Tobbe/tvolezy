@@ -55,10 +55,10 @@ LRESULT CALLBACK VolXP::callbackWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 	if (uMsg == WM_NCCREATE)
 	{
 		// get the pointer to the window from lpCreateParams which was set in CreateWindow
-		SetWindowLong(hwnd, GWL_USERDATA, (long)((LPCREATESTRUCT(lParam))->lpCreateParams));
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, (long)((LPCREATESTRUCT(lParam))->lpCreateParams));
 	}
 
-	pThis = (VolXP *)GetWindowLong(hwnd, GWL_USERDATA);
+	pThis = (VolXP *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
 	if (pThis && uMsg == MM_MIXM_CONTROL_CHANGE)
 	{
